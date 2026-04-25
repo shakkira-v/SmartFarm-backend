@@ -20,7 +20,7 @@ const alertSchema = new mongoose.Schema(
 
     animalType: {
       type: String,
-      enum: ["elephant", "boar", "deer", "cow", "dog", "fox", "unknown", "climate"],
+      enum: ["elephant", "boar", "deer", "cow", "dog", "fox", "monkey", "bear", "leopard", "rabbit", "unknown", "climate"],
       default: "unknown"
     },
 

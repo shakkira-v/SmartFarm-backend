@@ -25,8 +25,12 @@ export const triggerRandomIntrusion = async (req, res) => {
 
     // 4. Update zone risk level and climate stats
     randomZone.riskLevel = randomSeverity;
-    randomZone.alertsCount += 1;
-    randomZone.intrusionsToday += 1;
+    randomZone.alertsCount = (randomZone.alertsCount || 0) + 1;
+    randomZone.intrusionsToday = (randomZone.intrusionsToday || 0) + 1;
+    
+    if (!randomZone.position || !randomZone.position.top) {
+       randomZone.position = { top: "20%", left: "20%" };
+    }
     
     // Add climate randomization
     randomZone.temperature = Math.floor(Math.random() * (38 - 24) + 24);
@@ -90,8 +94,12 @@ export const triggerVisionIntrusion = async (req, res) => {
     if (!zone) return res.status(404).json({ message: "Zone not found" });
 
     zone.riskLevel = severity;
-    zone.alertsCount += 1;
-    zone.intrusionsToday += 1;
+    zone.alertsCount = (zone.alertsCount || 0) + 1;
+    zone.intrusionsToday = (zone.intrusionsToday || 0) + 1;
+
+    if (!zone.position || !zone.position.top) {
+       zone.position = { top: "20%", left: "20%" };
+    }
     await zone.save();
 
     const newAlert = new Alert({
@@ -170,8 +178,12 @@ export const startSimulation = (req, res) => {
       const randomSeverity = ["low", "medium", "high"][Math.floor(Math.random() * 3)];
 
       randomZone.riskLevel = randomSeverity;
-      randomZone.alertsCount += 1;
-      randomZone.intrusionsToday += 1;
+      randomZone.alertsCount = (randomZone.alertsCount || 0) + 1;
+      randomZone.intrusionsToday = (randomZone.intrusionsToday || 0) + 1;
+
+      if (!randomZone.position || !randomZone.position.top) {
+         randomZone.position = { top: "20%", left: "20%" };
+      }
 
       // Update climate for simulation event
       randomZone.temperature = Math.floor(Math.random() * (38 - 24) + 24);
@@ -189,6 +201,10 @@ export const startSimulation = (req, res) => {
           
           zone.temperature = Math.max(20, Math.min(45, (zone.temperature || 28) + tempDrift));
           zone.humidity = Math.max(30, Math.min(95, (zone.humidity || 65) + humDrift));
+
+          if (!zone.position || !zone.position.top) {
+             zone.position = { top: "20%", left: "20%" };
+          }
           await zone.save();
         }
       }
@@ -233,7 +249,6 @@ export const startSimulation = (req, res) => {
         await checkClimateAlerts(randomZone);
       }
 
-      // Slower repair cycle (10% chance)
       if (Math.random() > 0.9) {
         const malfunction = await Sensor.find({ status: { $ne: "normal" } });
         if (malfunction.length > 0) {
@@ -243,9 +258,11 @@ export const startSimulation = (req, res) => {
           console.log(`[SIMULATION] REPAIR: Sensor ${s.name}`);
         }
       }
+      
+      console.log(`[SIMULATION] SUCCESS: Intrusion simulated in ${randomZone.name}`);
 
     } catch (err) {
-      console.error("Simulation error:", err.message);
+      console.error("[SIMULATION ERROR]:", err.stack || err.message);
     }
   }, interval);
 
